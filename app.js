@@ -3,7 +3,9 @@ const CATEGORIES = [
   { id: "groceries", label: "Groceries" },
   { id: "gas", label: "Gas" },
   { id: "travel", label: "Travel" },
-  { id: "transit", label: "Transit / Rideshare" },
+  { id: "transit", label: "Transit" },
+  { id: "rideshare", label: "Rideshare" },
+  { id: "streaming", label: "Streaming Services" },
   { id: "online", label: "Online Shopping" },
   { id: "drugstore", label: "Drugstores" },
   { id: "other", label: "Everything Else" },
@@ -15,6 +17,7 @@ const STORE_CARDS = "cards";
 
 const state = {
   cards: [],
+  editingCardId: null,
 };
 
 const els = {
@@ -24,6 +27,9 @@ const els = {
   cardList: document.getElementById("cardList"),
   cardCount: document.getElementById("cardCount"),
   cardForm: document.getElementById("cardForm"),
+  formTitle: document.getElementById("formTitle"),
+  saveCardBtn: document.getElementById("saveCardBtn"),
+  cancelEdit: document.getElementById("cancelEdit"),
   cardName: document.getElementById("cardName"),
   issuer: document.getElementById("issuer"),
   rewardRows: document.getElementById("rewardRows"),
@@ -43,15 +49,14 @@ async function init() {
   wireEvents();
   dbPromise = openDb();
   state.cards = await readCards();
-  if (state.cards.length === 0) {
-    addRewardRow();
-  }
+  resetForm();
   render();
   registerServiceWorker();
 }
 
 function wireEvents() {
   els.addRewardRow.addEventListener("click", () => addRewardRow());
+  els.cancelEdit.addEventListener("click", resetForm);
   els.categoryPicker.addEventListener("change", renderComparison);
   els.cardForm.addEventListener("submit", onSubmitCard);
   els.rewardRows.addEventListener("click", (event) => {
@@ -61,10 +66,19 @@ function wireEvents() {
     }
   });
   els.cardList.addEventListener("click", async (event) => {
-    if (!event.target.matches("[data-delete-id]")) return;
-    const id = event.target.getAttribute("data-delete-id");
-    await deleteCard(id);
-    state.cards = state.cards.filter((card) => card.id !== id);
+    const editId = event.target.getAttribute("data-edit-id");
+    if (editId) {
+      startEdit(editId);
+      return;
+    }
+
+    const deleteId = event.target.getAttribute("data-delete-id");
+    if (!deleteId) return;
+    await deleteCard(deleteId);
+    state.cards = state.cards.filter((card) => card.id !== deleteId);
+    if (state.editingCardId === deleteId) {
+      resetForm();
+    }
     render();
   });
 }
@@ -100,19 +114,24 @@ async function onSubmitCard(event) {
     return;
   }
 
+  const editingCard = state.cards.find((card) => card.id === state.editingCardId);
   const card = {
-    id: crypto.randomUUID(),
+    id: editingCard?.id || crypto.randomUUID(),
     name,
     issuer,
     rewards,
-    createdAt: new Date().toISOString(),
+    createdAt: editingCard?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   await saveCard(card);
-  state.cards.push(card);
-  els.cardForm.reset();
-  els.rewardRows.innerHTML = "";
-  addRewardRow();
+  if (editingCard) {
+    state.cards = state.cards.map((existing) => (existing.id === card.id ? card : existing));
+  } else {
+    state.cards.push(card);
+  }
+
+  resetForm();
   render();
 }
 
@@ -165,7 +184,10 @@ function renderCards() {
               <div class="card-title">${escapeHtml(card.name)}</div>
               <div class="issuer">${escapeHtml(card.issuer || "No issuer")}</div>
             </div>
-            <button class="ghost" data-delete-id="${card.id}" aria-label="Delete ${escapeHtml(card.name)}">Delete</button>
+            <div class="card-actions">
+              <button class="secondary" data-edit-id="${card.id}" aria-label="Edit ${escapeHtml(card.name)}">Edit</button>
+              <button class="ghost" data-delete-id="${card.id}" aria-label="Delete ${escapeHtml(card.name)}">Delete</button>
+            </div>
           </div>
           <div class="tags">${tags}</div>
         </li>
@@ -217,6 +239,33 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function resetForm() {
+  state.editingCardId = null;
+  els.cardForm.reset();
+  els.formTitle.textContent = "Add Card";
+  els.saveCardBtn.textContent = "Save Card";
+  els.cancelEdit.hidden = true;
+  els.rewardRows.innerHTML = "";
+  addRewardRow();
+}
+
+function startEdit(cardId) {
+  const card = state.cards.find((entry) => entry.id === cardId);
+  if (!card) return;
+
+  state.editingCardId = cardId;
+  els.formTitle.textContent = "Edit Card";
+  els.saveCardBtn.textContent = "Update Card";
+  els.cancelEdit.hidden = false;
+  els.cardName.value = card.name;
+  els.issuer.value = card.issuer || "";
+  els.rewardRows.innerHTML = "";
+  card.rewards.forEach((reward) => addRewardRow(reward.category, reward.multiplier));
+  if (card.rewards.length === 0) {
+    addRewardRow();
+  }
 }
 
 function openDb() {

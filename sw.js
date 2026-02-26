@@ -1,4 +1,4 @@
-const CACHE_NAME = "cardtracker-v1";
+const CACHE_NAME = "cardtracker-v3";
 const APP_SHELL = ["/", "/index.html", "/styles.css", "/app.js", "/manifest.webmanifest", "/assets/icon.svg"];
 
 self.addEventListener("install", (event) => {

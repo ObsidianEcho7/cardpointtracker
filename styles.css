@@ -168,6 +168,12 @@ button.ghost {
   gap: 0.5rem;
 }
 
+.card-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
 .card-title {
   font-weight: 650;
 }

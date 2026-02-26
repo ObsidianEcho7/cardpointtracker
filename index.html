@@ -35,7 +35,7 @@
       </section>
 
       <section class="panel">
-        <h2>Add Card</h2>
+        <h2 id="formTitle">Add Card</h2>
         <form id="cardForm" class="card-form">
           <div class="fields">
             <label>
@@ -53,7 +53,8 @@
 
           <div class="form-actions">
             <button type="button" id="addRewardRow" class="secondary">Add Category</button>
-            <button type="submit">Save Card</button>
+            <button type="button" id="cancelEdit" class="secondary" hidden>Cancel Edit</button>
+            <button type="submit" id="saveCardBtn">Save Card</button>
           </div>
         </form>
       </section>
