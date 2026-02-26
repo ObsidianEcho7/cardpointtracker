@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#11363f" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>CardTracker</title>
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <h1>CardTracker</h1>
+        <p>Pick the best credit card rewards multiplier in seconds.</p>
+      </header>
+
+      <section class="panel">
+        <h2>Find Best Card</h2>
+        <div class="compare-controls">
+          <label for="categoryPicker">Purchase category</label>
+          <select id="categoryPicker"></select>
+        </div>
+        <div id="result" class="result muted">Add at least one card to compare.</div>
+        <ul id="ranking" class="ranking"></ul>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Your Cards</h2>
+          <span id="cardCount" class="count">0 cards</span>
+        </div>
+        <ul id="cardList" class="card-list"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>Add Card</h2>
+        <form id="cardForm" class="card-form">
+          <div class="fields">
+            <label>
+              Card name
+              <input type="text" id="cardName" required maxlength="50" placeholder="Sapphire Preferred" />
+            </label>
+            <label>
+              Issuer (optional)
+              <input type="text" id="issuer" maxlength="50" placeholder="Chase" />
+            </label>
+          </div>
+
+          <h3>Rewards by category</h3>
+          <div id="rewardRows" class="reward-rows"></div>
+
+          <div class="form-actions">
+            <button type="button" id="addRewardRow" class="secondary">Add Category</button>
+            <button type="submit">Save Card</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <template id="rewardRowTemplate">
+      <div class="reward-row">
+        <select class="reward-category"></select>
+        <label>
+          Multiplier
+          <input class="reward-multiplier" type="number" min="1" max="20" step="0.5" required />
+        </label>
+        <button type="button" class="ghost remove-row">Remove</button>
+      </div>
+    </template>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
