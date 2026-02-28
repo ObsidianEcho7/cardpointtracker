@@ -128,6 +128,24 @@ button.ghost {
   display: grid;
   gap: 0.35rem;
   margin-bottom: 0.65rem;
+  grid-template-columns: 1fr;
+}
+
+.catalog-controls label {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.catalog-controls input,
+.catalog-controls select {
+  border-color: #d3e5eb;
+  background: #fcfeff;
+}
+
+.catalog-controls input:focus,
+.catalog-controls select:focus {
+  outline: 2px solid #b7d9e3;
+  outline-offset: 1px;
 }
 
 .result {
@@ -204,6 +222,8 @@ button.ghost {
   border-style: dashed;
   border-color: #d8e6ea;
   background: #f9fcfd;
+  padding: 0.85rem;
+  text-align: center;
 }
 
 .catalog-note {
@@ -284,5 +304,17 @@ button.ghost {
 
   .reward-row {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 700px) {
+  .catalog-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+    column-gap: 0.6rem;
+  }
+
+  .catalog-controls label {
+    margin-top: 0.1rem;
   }
 }

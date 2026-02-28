@@ -105,3 +105,16 @@ test("filterCatalogCards combines issuer and search filters", () => {
   });
   assert.equal(noMatches.length, 0);
 });
+
+test("filterCatalogCards treats issuer matching as case-insensitive exact match", () => {
+  const cards = buildCatalogCards();
+  const lower = filterCatalogCards(cards, { issuer: "american express", searchTerm: "" });
+  const spaced = filterCatalogCards(cards, { issuer: "  American Express  ", searchTerm: "" });
+
+  assert.deepEqual(
+    lower.map((card) => card.name),
+    spaced.map((card) => card.name),
+  );
+  assert.ok(lower.length > 0);
+  assert.ok(lower.every((card) => card.issuer === "American Express"));
+});
