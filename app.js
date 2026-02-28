@@ -14,6 +14,7 @@ const CATEGORIES = [
 const DB_NAME = "cardtracker-db";
 const DB_VERSION = 1;
 const STORE_CARDS = "cards";
+const CATALOG_FEEDBACK_MS = 1800;
 
 const state = {
   cards: [],
@@ -21,6 +22,7 @@ const state = {
   catalogCards: [],
   catalogSearch: "",
   catalogIssuer: "all",
+  catalogFeedbackById: {},
 };
 
 const els = {
@@ -48,6 +50,7 @@ let dbPromise;
 let comparisonCore;
 let catalogCore;
 let walletCore;
+const catalogFeedbackTimers = new Map();
 
 bootstrap();
 
@@ -157,8 +160,13 @@ function wireEvents() {
 
     const catalogCardId = addButton.getAttribute("data-catalog-add-id");
     if (!catalogCardId) return;
-
-    await addCatalogCardToWallet(catalogCardId);
+    try {
+      await addCatalogCardToWallet(catalogCardId);
+    } catch (error) {
+      console.error(error);
+      setCatalogFeedback(catalogCardId, "error", "Unable to add card right now.");
+      renderCatalog();
+    }
   });
   els.cardForm.addEventListener("submit", onSubmitCard);
   els.rewardRows.addEventListener("click", (event) => {
@@ -255,15 +263,47 @@ async function onSubmitCard(event) {
 async function addCatalogCardToWallet(catalogCardId) {
   const catalogCard = state.catalogCards.find((entry) => entry.id === catalogCardId);
   if (!catalogCard) return;
-  if (walletCore.hasCatalogDuplicate(state.cards, catalogCardId)) return;
+  if (walletCore.hasCatalogDuplicate(state.cards, catalogCardId)) {
+    setCatalogFeedback(catalogCardId, "info", "Already in wallet.");
+    renderCatalog();
+    return;
+  }
 
   const walletCard = walletCore.createCatalogWalletCard(catalogCard);
   const nextCards = walletCore.addWalletCard(state.cards, walletCard);
-  if (nextCards.length === state.cards.length) return;
+  if (nextCards.length === state.cards.length) {
+    setCatalogFeedback(catalogCardId, "info", "Already in wallet.");
+    renderCatalog();
+    return;
+  }
 
   await saveCard(walletCard);
   state.cards = nextCards;
+  setCatalogFeedback(catalogCardId, "success", "Added to wallet.");
   render();
+}
+
+function setCatalogFeedback(catalogCardId, type, message) {
+  const id = String(catalogCardId || "").trim();
+  if (!id) return;
+
+  const existingTimer = catalogFeedbackTimers.get(id);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
+  }
+
+  state.catalogFeedbackById[id] = {
+    type,
+    message,
+  };
+
+  const timeout = setTimeout(() => {
+    delete state.catalogFeedbackById[id];
+    catalogFeedbackTimers.delete(id);
+    renderCatalog();
+  }, CATALOG_FEEDBACK_MS);
+
+  catalogFeedbackTimers.set(id, timeout);
 }
 
 function collectRewards() {
@@ -349,6 +389,18 @@ function renderCatalog() {
   const html = filtered
     .map((card) => {
       const tags = card.rewards.map((reward) => formatRewardTag(reward)).join("");
+      const isAdded = walletCore.catalogCardAlreadyInWallet(state.cards, card.id);
+      const addButtonLabel = isAdded ? "Added" : "Add to Wallet";
+      const addButtonClass = isAdded
+        ? "catalog-add-btn catalog-add-status is-added"
+        : "catalog-add-btn catalog-add-status";
+      const addButtonAttrs = isAdded
+        ? `class="${addButtonClass}" type="button" disabled aria-disabled="true"`
+        : `class="${addButtonClass}" type="button" data-catalog-add-id="${escapeHtml(card.id)}"`;
+      const feedback = state.catalogFeedbackById[card.id];
+      const feedbackMarkup = feedback
+        ? `<p class="catalog-feedback ${feedback.type ? `is-${escapeHtml(feedback.type)}` : ""}">${escapeHtml(feedback.message)}</p>`
+        : "";
       return `
         <li class="catalog-item">
           <div class="card-header">
@@ -356,9 +408,12 @@ function renderCatalog() {
               <div class="card-title">${escapeHtml(card.name)}</div>
               <div class="issuer">${escapeHtml(card.issuer)}</div>
             </div>
-            <button class="catalog-add-btn" type="button" data-catalog-add-id="${escapeHtml(card.id)}">Add to Wallet</button>
+            <div class="catalog-actions">
+              <button ${addButtonAttrs}>${addButtonLabel}</button>
+            </div>
           </div>
           <div class="tags">${tags}</div>
+          ${feedbackMarkup}
         </li>
       `;
     })

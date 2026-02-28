@@ -206,16 +206,47 @@ button.ghost {
   border-left: 4px solid #d6e8f4;
 }
 
-.catalog-readonly {
-  color: #24555f;
-  border: 1px solid #cde4ea;
-  background: #f0f9fc;
-  border-radius: 999px;
-  font-size: 0.75rem;
+.catalog-actions {
+  display: flex;
+  align-items: center;
+}
+
+.catalog-add-btn.catalog-add-status {
+  min-width: 8.2rem;
+  text-align: center;
+  font-size: 0.82rem;
+  padding-inline: 0.65rem;
+}
+
+.catalog-add-btn.catalog-add-status.is-added,
+.catalog-add-btn.catalog-add-status:disabled {
+  background: #dfeae6;
+  color: #2d5b52;
+  border: 1px solid #bdd2cb;
+  cursor: not-allowed;
+}
+
+.catalog-add-btn.catalog-add-status.is-added:hover,
+.catalog-add-btn.catalog-add-status:disabled:hover {
+  filter: none;
+}
+
+.catalog-feedback {
+  margin: 0.48rem 0 0;
+  font-size: 0.82rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  padding: 0.22rem 0.5rem;
-  white-space: nowrap;
+}
+
+.catalog-feedback.is-success {
+  color: #1f6b3a;
+}
+
+.catalog-feedback.is-info {
+  color: #24555f;
+}
+
+.catalog-feedback.is-error {
+  color: var(--danger);
 }
 
 .catalog-empty {
