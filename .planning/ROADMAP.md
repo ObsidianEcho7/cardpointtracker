@@ -29,8 +29,8 @@ This milestone evolves CardTracker from manual-entry only into a dual-path walle
 **Plans:** 2 plans
 
 Plans:
-- [ ] 01-01: Extract and stabilize comparison/ranking logic with regression-focused checks
-- [ ] 01-02: Align main screen presentation for consistent top-card visibility and messaging
+- [ ] 01-01-PLAN.md — Extract deterministic comparison core with regression tests
+- [ ] 01-02-PLAN.md — Harden top-card callout clarity and edge-state messaging
 
 ### Phase 2: Catalog Discovery Experience
 **Goal:** Introduce a built-in catalog that users can browse and discover cards by name and issuer.
