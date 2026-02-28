@@ -22,7 +22,7 @@
 - [x] **CAT-01**: User can browse a built-in catalog of popular credit cards with predefined multipliers
 - [x] **CAT-02**: User can search catalog cards by card name
 - [x] **CAT-03**: User can filter catalog cards by issuer
-- [ ] **CAT-04**: User can add a catalog card to wallet with predefined multipliers
+- [x] **CAT-04**: User can add a catalog card to wallet with predefined multipliers
 - [ ] **CAT-05**: User cannot add the same catalog card to wallet more than once
 - [ ] **CAT-06**: User cannot edit catalog card multipliers/details after adding to wallet
 - [ ] **CAT-07**: User can delete a catalog card from wallet
@@ -62,7 +62,7 @@
 | CAT-01 | Phase 2 | Complete |
 | CAT-02 | Phase 2 | Complete |
 | CAT-03 | Phase 2 | Complete |
-| CAT-04 | Phase 3 | Pending |
+| CAT-04 | Phase 3 | Complete |
 | CAT-05 | Phase 3 | Pending |
 | CAT-06 | Phase 4 | Pending |
 | CAT-07 | Phase 3 | Pending |
