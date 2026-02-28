@@ -53,25 +53,25 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WAL-01 | TBD | Pending |
-| WAL-02 | TBD | Pending |
-| WAL-03 | TBD | Pending |
-| CUS-01 | TBD | Pending |
-| CUS-02 | TBD | Pending |
-| CUS-03 | TBD | Pending |
-| CAT-01 | TBD | Pending |
-| CAT-02 | TBD | Pending |
-| CAT-03 | TBD | Pending |
-| CAT-04 | TBD | Pending |
-| CAT-05 | TBD | Pending |
-| CAT-06 | TBD | Pending |
-| CAT-07 | TBD | Pending |
+| WAL-01 | Phase 1 | Pending |
+| WAL-02 | Phase 1 | Pending |
+| WAL-03 | Phase 5 | Pending |
+| CUS-01 | Phase 4 | Pending |
+| CUS-02 | Phase 4 | Pending |
+| CUS-03 | Phase 4 | Pending |
+| CAT-01 | Phase 2 | Pending |
+| CAT-02 | Phase 2 | Pending |
+| CAT-03 | Phase 2 | Pending |
+| CAT-04 | Phase 3 | Pending |
+| CAT-05 | Phase 3 | Pending |
+| CAT-06 | Phase 4 | Pending |
+| CAT-07 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 13 total
-- Mapped to phases: 0
-- Unmapped: 13 ⚠️
+- Mapped to phases: 13
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after initial definition*
+*Last updated: 2026-02-28 after roadmap creation*
