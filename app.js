@@ -200,7 +200,7 @@ function wireEvents() {
       }
     }
 
-    render();
+    renderWalletMutationViews();
   });
 }
 
@@ -291,7 +291,7 @@ async function addCatalogCardToWallet(catalogCardId) {
   await saveCard(walletCard);
   state.cards = nextCards;
   setCatalogFeedback(catalogCardId, "success", "Added to wallet.");
-  render();
+  renderWalletMutationViews();
 }
 
 function setCatalogFeedback(catalogCardId, type, message) {
@@ -343,6 +343,12 @@ function render() {
   renderCatalog();
 }
 
+function renderWalletMutationViews() {
+  renderCards();
+  renderCatalog();
+  renderComparison();
+}
+
 function renderCards() {
   els.cardCount.textContent = `${state.cards.length} ${state.cards.length === 1 ? "card" : "cards"}`;
   if (state.cards.length === 0) {
@@ -357,12 +363,18 @@ function renderCards() {
       const tags = card.rewards
         .map((reward) => formatRewardTag(reward))
         .join("");
+      const sourceBadge = card.originType === walletCore.ORIGIN_CATALOG
+        ? `<span class="card-source-badge">Catalog</span>`
+        : "";
       return `
         <li>
           <div class="card-header">
             <div>
               <div class="card-title">${escapeHtml(card.name)}</div>
-              <div class="issuer">${escapeHtml(card.issuer || "No issuer")}</div>
+              <div class="issuer-line">
+                <div class="issuer">${escapeHtml(card.issuer || "No issuer")}</div>
+                ${sourceBadge}
+              </div>
             </div>
             <div class="card-actions">
               <button class="secondary" data-edit-id="${card.id}" aria-label="Edit ${escapeHtml(card.name)}">Edit</button>

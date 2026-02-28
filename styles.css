@@ -284,6 +284,25 @@ button.ghost {
   font-size: 0.88rem;
 }
 
+.issuer-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.card-source-badge {
+  display: inline-block;
+  border-radius: 999px;
+  border: 1px solid #c8dfd7;
+  background: #eef8f4;
+  color: #24584f;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  padding: 0.12rem 0.46rem;
+  text-transform: uppercase;
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;
