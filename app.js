@@ -230,17 +230,20 @@ function renderCards() {
 function renderComparison() {
   const category = els.categoryPicker.value || "other";
   const scored = comparisonCore.computeComparisonResults(state.cards, category);
+  els.result.classList.remove("result-callout", "result-empty");
 
   if (state.cards.length === 0) {
-    els.result.textContent = "Add at least one card to compare.";
+    els.result.textContent = "Add at least one card to compare. Use the Add Card form below to get started.";
     els.result.classList.add("muted");
-    els.ranking.innerHTML = "";
+    els.result.classList.add("result-empty");
+    els.ranking.innerHTML = `<li class="muted">No cards in wallet yet.</li>`;
     return;
   }
 
   if (scored.length === 0) {
     els.result.textContent = "No qualifying cards for this category.";
     els.result.classList.add("muted");
+    els.result.classList.add("result-empty");
     els.ranking.innerHTML = `<li class="muted">Try a different category or add an 'Everything Else' multiplier.</li>`;
     return;
   }
@@ -248,6 +251,7 @@ function renderComparison() {
   const [best] = scored;
   const categoryLabel = CATEGORIES.find((cat) => cat.id === category)?.label || category;
   els.result.classList.remove("muted");
+  els.result.classList.add("result-callout");
   els.result.innerHTML = `Best card for <strong>${escapeHtml(categoryLabel)}</strong>: <strong>${escapeHtml(best.card.name)}</strong> at <strong>${comparisonCore.formatMultiplier(best.multiplier)}</strong>.`;
 
   els.ranking.innerHTML = scored
