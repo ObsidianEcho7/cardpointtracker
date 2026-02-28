@@ -28,6 +28,24 @@
 
       <section class="panel">
         <div class="panel-header">
+          <h2>Popular Card Catalog</h2>
+          <span id="catalogCount" class="count">0 cards</span>
+        </div>
+        <div class="catalog-controls">
+          <label for="catalogSearch">Search by card name</label>
+          <input
+            id="catalogSearch"
+            type="search"
+            placeholder="Search catalog (e.g., Sapphire)"
+            autocomplete="off"
+          />
+        </div>
+        <ul id="catalogList" class="catalog-list"></ul>
+        <p class="muted catalog-note">Catalog cards are read-only for now. Wallet add/remove lands in the next phase.</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
           <h2>Your Cards</h2>
           <span id="cardCount" class="count">0 cards</span>
         </div>

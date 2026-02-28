@@ -124,6 +124,12 @@ button.ghost {
   margin-bottom: 0.65rem;
 }
 
+.catalog-controls {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
 .result {
   border-radius: 10px;
   padding: 0.75rem;
@@ -151,7 +157,8 @@ button.ghost {
 }
 
 .ranking,
-.card-list {
+.card-list,
+.catalog-list {
   list-style: none;
   margin: 0.7rem 0 0;
   padding: 0;
@@ -160,7 +167,8 @@ button.ghost {
 }
 
 .ranking li,
-.card-list li {
+.card-list li,
+.catalog-list li {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0.65rem 0.75rem;
@@ -174,6 +182,33 @@ button.ghost {
 
 .ranking li .muted {
   font-size: 0.88rem;
+}
+
+.catalog-item {
+  border-left: 4px solid #d6e8f4;
+}
+
+.catalog-readonly {
+  color: #24555f;
+  border: 1px solid #cde4ea;
+  background: #f0f9fc;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.22rem 0.5rem;
+  white-space: nowrap;
+}
+
+.catalog-empty {
+  border-style: dashed;
+  border-color: #d8e6ea;
+  background: #f9fcfd;
+}
+
+.catalog-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.86rem;
 }
 
 .card-header {
