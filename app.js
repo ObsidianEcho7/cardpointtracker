@@ -38,11 +38,19 @@ const els = {
 };
 
 let dbPromise;
+let comparisonCore;
 
-init().catch((error) => {
-  console.error(error);
-  els.result.textContent = "Error loading app data.";
-});
+bootstrap();
+
+async function bootstrap() {
+  try {
+    comparisonCore = await loadComparisonCore();
+    await init();
+  } catch (error) {
+    console.error(error);
+    els.result.textContent = "Error loading app data.";
+  }
+}
 
 async function init() {
   populateCategoryPickers();
@@ -52,6 +60,27 @@ async function init() {
   resetForm();
   render();
   registerServiceWorker();
+}
+
+async function loadComparisonCore() {
+  if (globalThis.CardTrackerComparisonCore) {
+    return globalThis.CardTrackerComparisonCore;
+  }
+
+  await new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "/comparison-core.js";
+    script.async = false;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Failed to load comparison-core.js"));
+    document.head.appendChild(script);
+  });
+
+  if (!globalThis.CardTrackerComparisonCore) {
+    throw new Error("Comparison core unavailable after script load");
+  }
+
+  return globalThis.CardTrackerComparisonCore;
 }
 
 function wireEvents() {
@@ -200,33 +229,33 @@ function renderCards() {
 
 function renderComparison() {
   const category = els.categoryPicker.value || "other";
-  const scored = state.cards
-    .map((card) => {
-      const match = card.rewards.find((reward) => reward.category === category);
-      const fallback = card.rewards.find((reward) => reward.category === "other");
-      const multiplier = match?.multiplier || fallback?.multiplier || 1;
-      return { card, multiplier };
-    })
-    .sort((a, b) => b.multiplier - a.multiplier);
+  const scored = comparisonCore.computeComparisonResults(state.cards, category);
 
-  if (scored.length === 0) {
+  if (state.cards.length === 0) {
     els.result.textContent = "Add at least one card to compare.";
     els.result.classList.add("muted");
     els.ranking.innerHTML = "";
     return;
   }
 
+  if (scored.length === 0) {
+    els.result.textContent = "No qualifying cards for this category.";
+    els.result.classList.add("muted");
+    els.ranking.innerHTML = `<li class="muted">Try a different category or add an 'Everything Else' multiplier.</li>`;
+    return;
+  }
+
   const [best] = scored;
   const categoryLabel = CATEGORIES.find((cat) => cat.id === category)?.label || category;
   els.result.classList.remove("muted");
-  els.result.innerHTML = `Best card for <strong>${escapeHtml(categoryLabel)}</strong>: <strong>${escapeHtml(best.card.name)}</strong> at <strong>${best.multiplier}x</strong>.`;
+  els.result.innerHTML = `Best card for <strong>${escapeHtml(categoryLabel)}</strong>: <strong>${escapeHtml(best.card.name)}</strong> at <strong>${comparisonCore.formatMultiplier(best.multiplier)}</strong>.`;
 
   els.ranking.innerHTML = scored
     .map(
-      ({ card, multiplier }, idx) => `
+      ({ card, multiplier, source }, idx) => `
       <li class="${idx === 0 ? "best" : ""}">
         <strong>${idx + 1}. ${escapeHtml(card.name)}</strong>
-        <span class="muted"> - ${multiplier}x</span>
+        <span class="muted"> - ${comparisonCore.formatMultiplier(multiplier)} (${escapeHtml(source)})</span>
       </li>`,
     )
     .join("");
