@@ -5,6 +5,7 @@ import walletCore from "../wallet-core.js";
 
 const {
   addWalletCard,
+  canDeleteWalletCard,
   canEditWalletCard,
   createCatalogWalletCard,
   getCatalogMembership,
@@ -16,6 +17,7 @@ const {
   normalizeRewardEntries,
   normalizeWalletCard,
   normalizeWalletCards,
+  removeWalletCard,
   removeCatalogWalletCard,
   toCatalogWalletId,
 } = walletCore;
@@ -232,6 +234,63 @@ test("removeCatalogWalletCard removes catalog entries and updates membership", (
   assert.equal(removed[0].originType, "custom");
   assert.equal(membership.has("amex-gold"), false);
   assert.equal(hasCatalogDuplicate(removed, "amex-gold"), false);
+});
+
+test("custom create/edit/delete flow remains intact while catalog membership stays protected", () => {
+  const catalog = createCatalogWalletCard(
+    {
+      id: "chase-sapphire-preferred",
+      name: "Chase Sapphire Preferred",
+      issuer: "Chase",
+      rewards: [{ category: "travel", multiplier: 2 }],
+    },
+    "2026-02-28T16:00:00.000Z",
+  );
+  const createdCustom = normalizeWalletCard({
+    id: "custom-everyday",
+    name: "Everyday Custom",
+    issuer: "Local CU",
+    rewards: [{ category: "groceries", multiplier: 3 }],
+  });
+  const editedCustom = normalizeWalletCard({
+    id: "custom-everyday",
+    name: "Everyday Custom Plus",
+    issuer: "Local CU",
+    rewards: [{ category: "groceries", multiplier: 4 }],
+    createdAt: createdCustom?.createdAt,
+  });
+
+  const withCatalog = addWalletCard([], catalog);
+  const afterCreate = addWalletCard(withCatalog, createdCustom);
+  const afterEdit = normalizeWalletCards(
+    afterCreate.map((card) => (card.id === editedCustom?.id ? editedCustom : card)),
+  );
+  const afterDelete = removeWalletCard(afterEdit, "custom-everyday");
+  const membership = getCatalogMembership(afterDelete);
+
+  assert.equal(afterCreate.length, 2);
+  assert.equal(afterEdit.find((card) => card.id === "custom-everyday")?.name, "Everyday Custom Plus");
+  assert.equal(afterDelete.length, 1);
+  assert.equal(afterDelete[0].id, "catalog-chase-sapphire-preferred");
+  assert.equal(membership.has("chase-sapphire-preferred"), true);
+  assert.equal(hasCatalogDuplicate(afterDelete, "chase-sapphire-preferred"), true);
+});
+
+test("canDeleteWalletCard allows both custom and catalog wallet entities", () => {
+  const catalog = normalizeWalletCard({
+    id: "catalog-capital-one-venture-x",
+    name: "Capital One Venture X",
+    rewards: [{ category: "travel", multiplier: 2 }],
+    catalogCardId: "capital-one-venture-x",
+  });
+  const custom = normalizeWalletCard({
+    id: "custom-flex",
+    name: "Flex Custom",
+    rewards: [{ category: "other", multiplier: 1.5 }],
+  });
+
+  assert.equal(canDeleteWalletCard(catalog), true);
+  assert.equal(canDeleteWalletCard(custom), true);
 });
 
 test("catalog card becomes re-addable after removal", () => {

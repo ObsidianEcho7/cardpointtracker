@@ -196,8 +196,12 @@ function wireEvents() {
     if (!deleteId) return;
 
     const deletedCard = state.cards.find((card) => card.id === deleteId);
+    if (!walletCore.canDeleteWalletCard(deletedCard)) {
+      return;
+    }
+
     await deleteCard(deleteId);
-    state.cards = walletCore.removeCatalogWalletCard(state.cards, deleteId);
+    state.cards = walletCore.removeWalletCard(state.cards, deleteId);
     if (state.editingCardId === deleteId) {
       resetForm();
     }

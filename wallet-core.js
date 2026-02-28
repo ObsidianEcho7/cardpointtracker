@@ -102,6 +102,11 @@
     return isCustomWalletCard(walletCard);
   }
 
+  function canDeleteWalletCard(walletCard) {
+    const originType = getWalletOriginType(walletCard);
+    return originType === ORIGIN_CUSTOM || originType === ORIGIN_CATALOG;
+  }
+
   function createCatalogWalletCard(catalogCard, timestamp) {
     const catalogCardId = String(catalogCard?.id || "").trim();
     if (!catalogCardId) {
@@ -217,13 +222,17 @@
     return [...normalizedList, normalizedCard];
   }
 
-  function removeCatalogWalletCard(walletCards, walletCardId) {
+  function removeWalletCard(walletCards, walletCardId) {
     const targetWalletCardId = String(walletCardId || "").trim();
     if (!targetWalletCardId) {
       return normalizeWalletCards(walletCards);
     }
 
     return normalizeWalletCards(walletCards).filter((card) => card.id !== targetWalletCardId);
+  }
+
+  function removeCatalogWalletCard(walletCards, walletCardId) {
+    return removeWalletCard(walletCards, walletCardId);
   }
 
   function getCatalogMembership(walletCards) {
@@ -244,10 +253,12 @@
     isCatalogWalletCard,
     isCustomWalletCard,
     canEditWalletCard,
+    canDeleteWalletCard,
     normalizeRewardEntries,
     createCatalogWalletCard,
     normalizeWalletCard,
     normalizeWalletCards,
+    removeWalletCard,
     getCatalogCardId,
     hasCatalogDuplicate,
     catalogCardAlreadyInWallet: hasCatalogDuplicate,
