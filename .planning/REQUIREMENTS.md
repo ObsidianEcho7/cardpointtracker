@@ -15,7 +15,7 @@
 
 - [x] **CUS-01**: User can manually add a custom card with one or more category multipliers
 - [x] **CUS-02**: User can edit an existing custom card's details and multipliers
-- [ ] **CUS-03**: User can delete a custom card from wallet
+- [x] **CUS-03**: User can delete a custom card from wallet
 
 ### Catalog Cards
 
@@ -58,7 +58,7 @@
 | WAL-03 | Phase 5 | Pending |
 | CUS-01 | Phase 4 | Complete |
 | CUS-02 | Phase 4 | Complete |
-| CUS-03 | Phase 4 | Pending |
+| CUS-03 | Phase 4 | Complete |
 | CAT-01 | Phase 2 | Complete |
 | CAT-02 | Phase 2 | Complete |
 | CAT-03 | Phase 2 | Complete |

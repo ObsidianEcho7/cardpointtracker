@@ -13,7 +13,7 @@ This milestone evolves CardTracker from manual-entry only into a dual-path walle
 - [x] **Phase 1: Baseline Comparison Hardening** - Lock down existing comparison behavior and baseline wallet flows as foundation (completed 2026-02-28)
 - [x] **Phase 2: Catalog Discovery Experience** - Add built-in catalog browsing with name and issuer discovery (completed 2026-02-28)
 - [x] **Phase 3: Catalog-to-Wallet Integration** - Allow adding/removing catalog cards with duplicate prevention (completed 2026-02-28)
-- [ ] **Phase 4: Card Type Rules & Editability** - Enforce read-only catalog cards while preserving editable custom cards
+- [x] **Phase 4: Card Type Rules & Editability** - Enforce read-only catalog cards while preserving editable custom cards (completed 2026-02-28)
 - [ ] **Phase 5: Mixed Wallet UX Validation** - Validate combined custom+catalog ranking UX for general users
 
 ## Phase Details
@@ -70,7 +70,7 @@ Plans:
   1. User can create custom cards manually with reward multipliers.
   2. User can edit custom cards but cannot edit catalog cards.
   3. User can delete custom cards from wallet without affecting catalog definitions.
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 04-01: Introduce explicit card-origin/type model in wallet entities
@@ -98,5 +98,5 @@ Plans:
 | 1. Baseline Comparison Hardening | 2/2 | Complete    | 2026-02-28 |
 | 2. Catalog Discovery Experience | 3/3 | Complete    | 2026-02-28 |
 | 3. Catalog-to-Wallet Integration | 3/3 | Complete    | 2026-02-28 |
-| 4. Card Type Rules & Editability | 2/3 | In Progress|  |
+| 4. Card Type Rules & Editability | 3/3 | Complete   | 2026-02-28 |
 | 5. Mixed Wallet UX Validation | 0/2 | Not started | - |

@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: Card Type Rules & Editability
 current_plan: 3
-status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-02-28T15:22:52.832Z"
+status: verifying
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-02-28T15:25:07.656Z"
 last_activity: 2026-02-28
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
-  percent: 91
+  completed_plans: 11
+  percent: 100
 ---
 
 # Project State
@@ -33,10 +33,10 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 **Total Phases:** 5
 **Current Plan:** 3
 **Total Plans in Phase:** 3
-**Status:** Ready to execute
+**Status:** Phase complete — ready for verification
 **Last Activity:** 2026-02-28
 **Last Activity Description:** Phase 4 plans created and verified
-**Progress:** [█████████░] 91%
+**Progress:** [██████████] 100%
 
 ## Decisions Made
 
@@ -48,6 +48,8 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 - [Phase 04]: Persist normalized cards back to IndexedDB at load time when legacy storage shape is detected. — Avoids repeated migration paths and guarantees future origin-aware rules operate on canonical entities.
 - [Phase 04]: Centralize editability in wallet-core (canEditWalletCard) so UI and runtime guards share one rule. — Prevents mismatched behavior between render logic and runtime mutation paths.
 - [Phase 04]: Keep catalog cards deletable while making them read-only for edits in wallet UI. — Preserves existing catalog removal behavior from Phase 3 while implementing CAT-06 edit restrictions.
+- [Phase 04]: Route wallet delete behavior through dedicated wallet-core helpers (canDeleteWalletCard, removeWalletCard) to keep mutation rules centralized. — Makes delete behavior consistent across runtime paths and easier to regression test.
+- [Phase 04]: Harden ranking confidence with explicit mixed-wallet CRUD sequence tests rather than relying on ad hoc manual validation. — Guards deterministic ranking behavior after create/edit/delete mutations in realistic wallet states.
 
 ## Blockers
 
@@ -55,6 +57,6 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Session
 
-**Last Date:** 2026-02-28T15:22:52.831Z
-**Stopped At:** Completed 04-02-PLAN.md
+**Last Date:** 2026-02-28T15:25:07.654Z
+**Stopped At:** Completed 04-03-PLAN.md
 **Resume File:** None
