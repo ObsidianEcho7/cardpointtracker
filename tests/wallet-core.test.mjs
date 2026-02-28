@@ -5,6 +5,7 @@ import walletCore from "../wallet-core.js";
 
 const {
   addWalletCard,
+  canEditWalletCard,
   createCatalogWalletCard,
   getCatalogMembership,
   getCatalogCardId,
@@ -153,6 +154,8 @@ test("wallet origin helpers resolve deterministic catalog/custom semantics", () 
   assert.equal(getWalletOriginType(customCard), "custom");
   assert.equal(isCatalogWalletCard(customCard), false);
   assert.equal(isCustomWalletCard(customCard), true);
+  assert.equal(canEditWalletCard(customCard), true);
+  assert.equal(canEditWalletCard(catalogCard), false);
 });
 
 test("hasCatalogDuplicate matches by catalog identity even with persisted shape variants", () => {

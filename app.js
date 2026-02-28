@@ -182,6 +182,12 @@ function wireEvents() {
   els.cardList.addEventListener("click", async (event) => {
     const editId = event.target.getAttribute("data-edit-id");
     if (editId) {
+      const cardToEdit = state.cards.find((card) => card.id === editId);
+      if (!walletCore.canEditWalletCard(cardToEdit)) {
+        resetForm();
+        renderCards();
+        return;
+      }
       startEdit(editId);
       return;
     }
@@ -251,6 +257,12 @@ async function onSubmitCard(event) {
   }
 
   const editingCard = state.cards.find((card) => card.id === state.editingCardId);
+  if (editingCard && !walletCore.canEditWalletCard(editingCard)) {
+    resetForm();
+    renderWalletMutationViews();
+    return;
+  }
+
   const card = walletCore.normalizeWalletCard({
     id: editingCard?.id || crypto.randomUUID(),
     name,
@@ -514,7 +526,7 @@ function resetForm() {
 
 function startEdit(cardId) {
   const card = state.cards.find((entry) => entry.id === cardId);
-  if (!card) return;
+  if (!card || !walletCore.canEditWalletCard(card)) return;
 
   state.editingCardId = cardId;
   els.formTitle.textContent = "Edit Card";

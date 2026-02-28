@@ -98,6 +98,10 @@
     return getWalletOriginType(walletCard) === ORIGIN_CUSTOM;
   }
 
+  function canEditWalletCard(walletCard) {
+    return isCustomWalletCard(walletCard);
+  }
+
   function createCatalogWalletCard(catalogCard, timestamp) {
     const catalogCardId = String(catalogCard?.id || "").trim();
     if (!catalogCardId) {
@@ -239,6 +243,7 @@
     getWalletOriginType,
     isCatalogWalletCard,
     isCustomWalletCard,
+    canEditWalletCard,
     normalizeRewardEntries,
     createCatalogWalletCard,
     normalizeWalletCard,
