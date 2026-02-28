@@ -69,6 +69,10 @@
               Issuer (optional)
               <input type="text" id="issuer" maxlength="50" placeholder="Chase" />
             </label>
+            <label>
+              Card network (optional)
+              <input type="text" id="network" maxlength="40" list="cardNetworkSuggestions" placeholder="Visa" />
+            </label>
           </div>
 
           <h3>Rewards by category</h3>
@@ -93,6 +97,15 @@
         <button type="button" class="ghost remove-row">Remove</button>
       </div>
     </template>
+
+    <datalist id="cardNetworkSuggestions">
+      <option value="Visa"></option>
+      <option value="Mastercard"></option>
+      <option value="American Express"></option>
+      <option value="Discover"></option>
+      <option value="JCB"></option>
+      <option value="UnionPay"></option>
+    </datalist>
 
     <script src="/app.js" defer></script>
   </body>

@@ -41,6 +41,7 @@ const els = {
   cancelEdit: document.getElementById("cancelEdit"),
   cardName: document.getElementById("cardName"),
   issuer: document.getElementById("issuer"),
+  network: document.getElementById("network"),
   rewardRows: document.getElementById("rewardRows"),
   addRewardRow: document.getElementById("addRewardRow"),
   rewardRowTemplate: document.getElementById("rewardRowTemplate"),
@@ -72,11 +73,12 @@ async function init() {
   dbPromise = openDb();
   const storedCards = await readCards();
   const normalizedCards = walletCore.normalizeWalletCards(storedCards);
-  if (walletCardsNeedPersistenceMigration(storedCards, normalizedCards)) {
-    await replaceCards(normalizedCards);
-  }
-  state.cards = normalizedCards;
   state.catalogCards = catalogCore.buildCatalogCards();
+  const hydratedCards = backfillCatalogNetworks(normalizedCards, state.catalogCards);
+  if (walletCardsNeedPersistenceMigration(storedCards, hydratedCards)) {
+    await replaceCards(hydratedCards);
+  }
+  state.cards = hydratedCards;
   populateCatalogIssuerOptions();
   resetForm();
   render();
@@ -254,6 +256,7 @@ async function onSubmitCard(event) {
   event.preventDefault();
   const name = els.cardName.value.trim();
   const issuer = els.issuer.value.trim();
+  const network = els.network.value.trim();
   const rewards = collectRewards();
 
   if (!name || rewards.length === 0) {
@@ -271,6 +274,7 @@ async function onSubmitCard(event) {
     id: editingCard?.id || crypto.randomUUID(),
     name,
     issuer,
+    network,
     rewards,
     createdAt: editingCard?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -295,6 +299,11 @@ async function onSubmitCard(event) {
 async function addCatalogCardToWallet(catalogCardId) {
   const catalogCard = state.catalogCards.find((entry) => entry.id === catalogCardId);
   if (!catalogCard) return;
+  if (!Array.isArray(catalogCard.rewards) || catalogCard.rewards.length === 0) {
+    setCatalogFeedback(catalogCardId, "info", "Rewards data unavailable for this card yet.");
+    renderCatalog();
+    return;
+  }
   if (walletCore.hasCatalogDuplicate(state.cards, catalogCardId)) {
     setCatalogFeedback(catalogCardId, "info", "Already in wallet.");
     renderCatalog();
@@ -400,7 +409,7 @@ function renderCards() {
             <div>
               <div class="card-title">${escapeHtml(card.name)}</div>
               <div class="issuer-line">
-                <div class="issuer">${escapeHtml(card.issuer || "No issuer")}</div>
+                <div class="issuer">${escapeHtml(formatIssuerAndNetwork(card, "No issuer"))}</div>
                 ${sourceBadge}
               </div>
             </div>
@@ -440,31 +449,41 @@ function renderCatalog() {
 
   const html = filtered
     .map((card) => {
+      const hasRewards = Array.isArray(card.rewards) && card.rewards.length > 0;
       const tags = card.rewards.map((reward) => formatRewardTag(reward)).join("");
       const isAdded = walletCore.catalogCardAlreadyInWallet(state.cards, card.id);
-      const addButtonLabel = isAdded ? "Added" : "Add to Wallet";
-      const addButtonClass = isAdded
+      const addButtonLabel = isAdded
+        ? "Added"
+        : (hasRewards ? "Add to Wallet" : "No Rewards Data");
+      const addButtonClass = isAdded || !hasRewards
         ? "catalog-add-btn catalog-add-status is-added"
         : "catalog-add-btn catalog-add-status";
-      const addButtonAttrs = isAdded
+      const addButtonAttrs = isAdded || !hasRewards
         ? `class="${addButtonClass}" type="button" disabled aria-disabled="true"`
         : `class="${addButtonClass}" type="button" data-catalog-add-id="${escapeHtml(card.id)}"`;
+      const detailsLink = card.link
+        ? `<a class="catalog-link" href="${escapeHtml(card.link)}" target="_blank" rel="noopener noreferrer">Official</a>`
+        : "";
       const feedback = state.catalogFeedbackById[card.id];
       const feedbackMarkup = feedback
         ? `<p class="catalog-feedback ${feedback.type ? `is-${escapeHtml(feedback.type)}` : ""}">${escapeHtml(feedback.message)}</p>`
         : "";
+      const rewardsMarkup = hasRewards
+        ? `<div class="tags">${tags}</div>`
+        : `<div class="tags"><span class="tag tag-muted">Rewards data coming soon</span></div>`;
       return `
         <li class="catalog-item">
           <div class="card-header">
             <div>
               <div class="card-title">${escapeHtml(card.name)}</div>
-              <div class="issuer">${escapeHtml(card.issuer)}</div>
+              <div class="issuer">${escapeHtml(formatIssuerAndNetwork(card, "Unknown"))}</div>
             </div>
             <div class="catalog-actions">
+              ${detailsLink}
               <button ${addButtonAttrs}>${addButtonLabel}</button>
             </div>
           </div>
-          <div class="tags">${tags}</div>
+          ${rewardsMarkup}
           ${feedbackMarkup}
         </li>
       `;
@@ -518,6 +537,17 @@ function formatRewardTag(reward) {
   return `<span class="tag">${escapeHtml(label)}: ${comparisonCore.formatMultiplier(reward.multiplier)}</span>`;
 }
 
+function formatIssuerAndNetwork(card, fallback) {
+  const issuer = String(card?.issuer || "").trim();
+  const network = String(card?.network || "").trim();
+
+  if (issuer && network) {
+    return `${issuer} • ${network}`;
+  }
+
+  return issuer || network || fallback;
+}
+
 function escapeHtml(value) {
   return value
     .replaceAll("&", "&amp;")
@@ -547,6 +577,7 @@ function startEdit(cardId) {
   els.cancelEdit.hidden = false;
   els.cardName.value = card.name;
   els.issuer.value = card.issuer || "";
+  els.network.value = card.network || "";
   els.rewardRows.innerHTML = "";
   card.rewards.forEach((reward) => addRewardRow(reward.category, reward.multiplier));
   if (card.rewards.length === 0) {
@@ -584,6 +615,29 @@ async function readCards() {
 function walletCardsNeedPersistenceMigration(storedCards, normalizedCards) {
   const raw = Array.isArray(storedCards) ? storedCards : [];
   return JSON.stringify(raw) !== JSON.stringify(normalizedCards);
+}
+
+function backfillCatalogNetworks(cards, catalogCards) {
+  const catalogById = new Map(
+    (Array.isArray(catalogCards) ? catalogCards : []).map((catalogCard) => [catalogCard.id, catalogCard]),
+  );
+
+  return walletCore.normalizeWalletCards(cards).map((card) => {
+    const catalogCardId = walletCore.getCatalogCardId(card);
+    if (!catalogCardId) return card;
+
+    if (String(card.network || "").trim()) {
+      return card;
+    }
+
+    const catalogNetwork = String(catalogById.get(catalogCardId)?.network || "").trim();
+    if (!catalogNetwork) return card;
+
+    return walletCore.normalizeWalletCard({
+      ...card,
+      network: catalogNetwork,
+    });
+  }).filter(Boolean);
 }
 
 async function replaceCards(cards) {

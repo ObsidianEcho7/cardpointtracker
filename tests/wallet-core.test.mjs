@@ -29,6 +29,7 @@ test("createCatalogWalletCard converts catalog card into persisted wallet shape"
       id: "chase-sapphire-preferred",
       name: "Chase Sapphire Preferred",
       issuer: "Chase",
+      network: "Visa",
       rewards: {
         travel: 2,
         dining: 3,
@@ -41,6 +42,7 @@ test("createCatalogWalletCard converts catalog card into persisted wallet shape"
   assert.equal(walletCard.id, "catalog-chase-sapphire-preferred");
   assert.equal(walletCard.name, "Chase Sapphire Preferred");
   assert.equal(walletCard.issuer, "Chase");
+  assert.equal(walletCard.network, "Visa");
   assert.equal(walletCard.createdAt, now);
   assert.equal(walletCard.updatedAt, now);
   assert.equal(walletCard.originType, "catalog");
@@ -60,6 +62,7 @@ test("createCatalogWalletCard produces deterministic ids for the same catalog ca
     id: "capital-one-venture-x",
     name: "Capital One Venture X",
     issuer: "Capital One",
+    network: "Visa",
     rewards: [{ category: "travel", multiplier: 2 }],
   };
 
@@ -76,6 +79,7 @@ test("normalizeWalletCard keeps catalog origin metadata for persisted reload", (
     id: "catalog-chase-freedom-unlimited",
     name: "Chase Freedom Unlimited",
     issuer: "Chase",
+    network: "Visa",
     rewards: [
       { category: "dining", multiplier: 3 },
       { category: "other", multiplier: 1.5 },
@@ -91,6 +95,7 @@ test("normalizeWalletCard keeps catalog origin metadata for persisted reload", (
   assert.equal(normalized?.originType, "catalog");
   assert.equal(normalized?.catalogCardId, "chase-freedom-unlimited");
   assert.equal(normalized?.origin?.catalogCardId, "chase-freedom-unlimited");
+  assert.equal(normalized?.network, "Visa");
   assert.deepEqual(normalized?.rewards, [
     { category: "dining", multiplier: 3 },
     { category: "other", multiplier: 1.5 },
@@ -105,6 +110,7 @@ test("normalizeWalletCards filters malformed entries and normalizes safe objects
       id: "custom-1",
       name: "Custom Card",
       issuer: "Test Bank",
+      network: "  Mastercard ",
       rewards: [
         { category: "travel", multiplier: "2" },
         { category: "travel", multiplier: 3 },
@@ -116,6 +122,7 @@ test("normalizeWalletCards filters malformed entries and normalizes safe objects
 
   assert.equal(normalized.length, 1);
   assert.equal(normalized[0].originType, "custom");
+  assert.equal(normalized[0].network, "Mastercard");
   assert.deepEqual(normalized[0].rewards, [{ category: "travel", multiplier: 3 }]);
 });
 

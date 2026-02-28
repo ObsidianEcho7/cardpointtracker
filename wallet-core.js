@@ -119,6 +119,7 @@
       id: toCatalogWalletId(catalogCardId),
       name: sanitizeText(catalogCard?.name, "Unnamed Card"),
       issuer: sanitizeText(catalogCard?.issuer, "Unknown"),
+      network: sanitizeText(catalogCard?.network, ""),
       rewards: normalizeRewardEntries(catalogCard?.rewards),
       createdAt: now,
       updatedAt: now,
@@ -153,6 +154,7 @@
         id: sanitizeText(card.id, toCatalogWalletId(safeCatalogCardId)),
         name: sanitizeText(card.name, "Unnamed Card"),
         issuer: sanitizeText(card.issuer, "Unknown"),
+        network: sanitizeText(card.network, ""),
         rewards,
         createdAt,
         updatedAt,
@@ -169,14 +171,15 @@
       id: sanitizeText(card.id, `custom-${Date.now()}`),
       name: sanitizeText(card.name, "Unnamed Card"),
       issuer: sanitizeText(card.issuer, "Unknown"),
+      network: sanitizeText(card.network, ""),
       rewards,
-        createdAt,
-        updatedAt,
-        originType: normalizeOriginType(originType),
-        origin: {
-          type: ORIGIN_CUSTOM,
-        },
-      };
+      createdAt,
+      updatedAt,
+      originType: normalizeOriginType(originType),
+      origin: {
+        type: ORIGIN_CUSTOM,
+      },
+    };
   }
 
   function normalizeWalletCards(cards) {

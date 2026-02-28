@@ -24,6 +24,7 @@ Then open [http://localhost:8080](http://localhost:8080).
 
 - Card name
 - Optional issuer
+- Optional card network (Visa, Mastercard, etc.)
 - Reward multipliers by category
 
 ## Next steps

@@ -5,6 +5,7 @@ import catalogCore from "../catalog-core.js";
 
 const {
   CATALOG_SEED,
+  CATALOG_REFERENCE_SEED,
   buildCatalogCards,
   normalizeCatalogCard,
   normalizeRewardEntries,
@@ -14,14 +15,24 @@ const {
 
 test("buildCatalogCards returns normalized fixed catalog entries", () => {
   const cards = buildCatalogCards();
-  assert.ok(cards.length >= 10);
+  assert.ok(cards.length > CATALOG_SEED.length);
+  assert.ok(cards.length <= CATALOG_SEED.length + CATALOG_REFERENCE_SEED.length);
+
+  const withRewards = cards.filter((card) => card.rewards.length > 0);
+  const withoutRewards = cards.filter((card) => card.rewards.length === 0);
+  assert.ok(withRewards.length >= CATALOG_SEED.length);
+  assert.ok(withoutRewards.length > 0);
 
   cards.forEach((card) => {
     assert.ok(card.id);
     assert.ok(card.name);
     assert.ok(card.issuer);
+    assert.ok(card.network);
     assert.ok(Array.isArray(card.rewards));
-    assert.ok(card.rewards.length > 0);
+    assert.ok(typeof card.link === "string");
+    if (card.link) {
+      assert.ok(card.link.startsWith("https://") || card.link.startsWith("http://"));
+    }
 
     card.rewards.forEach((reward) => {
       assert.ok(reward.category);
@@ -29,8 +40,6 @@ test("buildCatalogCards returns normalized fixed catalog entries", () => {
       assert.ok(reward.multiplier > 0);
     });
   });
-
-  assert.equal(cards.length, CATALOG_SEED.length);
 });
 
 test("normalizeRewardEntries deduplicates categories and keeps highest multiplier", () => {
@@ -54,6 +63,8 @@ test("normalizeCatalogCard creates deterministic id and normalized fields", () =
     {
       name: "  Test Card  ",
       issuer: "  Test Bank ",
+      network: "  Visa ",
+      link: "https://example.com/card",
       rewards: {
         groceries: 3,
       },
@@ -64,6 +75,8 @@ test("normalizeCatalogCard creates deterministic id and normalized fields", () =
   assert.equal(card.id, "test-bank-test-card");
   assert.equal(card.name, "Test Card");
   assert.equal(card.issuer, "Test Bank");
+  assert.equal(card.network, "Visa");
+  assert.equal(card.link, "https://example.com/card");
   assert.deepEqual(card.rewards, [{ category: "groceries", multiplier: 3 }]);
 });
 
@@ -117,4 +130,27 @@ test("filterCatalogCards treats issuer matching as case-insensitive exact match"
   );
   assert.ok(lower.length > 0);
   assert.ok(lower.every((card) => card.issuer === "American Express"));
+});
+
+test("buildCatalogCards collapses known near-duplicate product aliases", () => {
+  const cards = buildCatalogCards();
+  const names = new Set(cards.map((card) => card.name));
+
+  assert.equal(names.has("Capital One Venture X"), true);
+  assert.equal(names.has("Venture X Rewards"), false);
+
+  assert.equal(names.has("Capital One Savor"), true);
+  assert.equal(names.has("Savor Rewards"), false);
+
+  assert.equal(names.has("Capital One Quicksilver"), true);
+  assert.equal(names.has("Quicksilver Rewards"), false);
+
+  assert.equal(names.has("Amazon Prime Visa"), true);
+  assert.equal(names.has("Prime Visa"), false);
+
+  assert.equal(names.has("Bank of America Customized Cash Rewards"), true);
+  assert.equal(names.has("Customized Cash Rewards"), false);
+
+  assert.equal(names.has("Bank of America Premium Rewards"), true);
+  assert.equal(names.has("Premium Rewards"), false);
 });
