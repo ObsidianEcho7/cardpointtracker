@@ -18,12 +18,19 @@ const STORE_CARDS = "cards";
 const state = {
   cards: [],
   editingCardId: null,
+  catalogCards: [],
+  catalogSearch: "",
+  catalogIssuer: "all",
 };
 
 const els = {
   categoryPicker: document.getElementById("categoryPicker"),
   result: document.getElementById("result"),
   ranking: document.getElementById("ranking"),
+  catalogSearch: document.getElementById("catalogSearch"),
+  catalogList: document.getElementById("catalogList"),
+  catalogCount: document.getElementById("catalogCount"),
+  catalogIssuer: document.getElementById("catalogIssuer"),
   cardList: document.getElementById("cardList"),
   cardCount: document.getElementById("cardCount"),
   cardForm: document.getElementById("cardForm"),
@@ -39,12 +46,14 @@ const els = {
 
 let dbPromise;
 let comparisonCore;
+let catalogCore;
 
 bootstrap();
 
 async function bootstrap() {
   try {
     comparisonCore = await loadComparisonCore();
+    catalogCore = await loadCatalogCore();
     await init();
   } catch (error) {
     console.error(error);
@@ -57,6 +66,8 @@ async function init() {
   wireEvents();
   dbPromise = openDb();
   state.cards = await readCards();
+  state.catalogCards = catalogCore.buildCatalogCards();
+  populateCatalogIssuerOptions();
   resetForm();
   render();
   registerServiceWorker();
@@ -83,10 +94,39 @@ async function loadComparisonCore() {
   return globalThis.CardTrackerComparisonCore;
 }
 
+async function loadCatalogCore() {
+  if (globalThis.CardTrackerCatalogCore) {
+    return globalThis.CardTrackerCatalogCore;
+  }
+
+  await new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "/catalog-core.js";
+    script.async = false;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Failed to load catalog-core.js"));
+    document.head.appendChild(script);
+  });
+
+  if (!globalThis.CardTrackerCatalogCore) {
+    throw new Error("Catalog core unavailable after script load");
+  }
+
+  return globalThis.CardTrackerCatalogCore;
+}
+
 function wireEvents() {
   els.addRewardRow.addEventListener("click", () => addRewardRow());
   els.cancelEdit.addEventListener("click", resetForm);
   els.categoryPicker.addEventListener("change", renderComparison);
+  els.catalogSearch?.addEventListener("input", (event) => {
+    state.catalogSearch = event.target.value || "";
+    renderCatalog();
+  });
+  els.catalogIssuer?.addEventListener("change", (event) => {
+    state.catalogIssuer = event.target.value || "all";
+    renderCatalog();
+  });
   els.cardForm.addEventListener("submit", onSubmitCard);
   els.rewardRows.addEventListener("click", (event) => {
     if (event.target.classList.contains("remove-row")) {
@@ -131,6 +171,17 @@ function addRewardRow(category = "other", multiplier = "1") {
   categorySelect.value = category;
   multiplierInput.value = String(multiplier);
   els.rewardRows.appendChild(fragment);
+}
+
+function populateCatalogIssuerOptions() {
+  if (!els.catalogIssuer) return;
+  const issuers = catalogCore.getCatalogIssuers(state.catalogCards);
+  const options = [
+    `<option value="all">All issuers</option>`,
+    ...issuers.map((issuer) => `<option value="${escapeHtml(issuer)}">${escapeHtml(issuer)}</option>`),
+  ];
+  els.catalogIssuer.innerHTML = options.join("");
+  els.catalogIssuer.value = "all";
 }
 
 async function onSubmitCard(event) {
@@ -187,6 +238,7 @@ function collectRewards() {
 function render() {
   renderCards();
   renderComparison();
+  renderCatalog();
 }
 
 function renderCards() {
@@ -201,10 +253,7 @@ function renderCards() {
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((card) => {
       const tags = card.rewards
-        .map((reward) => {
-          const label = CATEGORIES.find((cat) => cat.id === reward.category)?.label || reward.category;
-          return `<span class="tag">${label}: ${reward.multiplier}x</span>`;
-        })
+        .map((reward) => formatRewardTag(reward))
         .join("");
       return `
         <li>
@@ -225,6 +274,41 @@ function renderCards() {
     .join("");
 
   els.cardList.innerHTML = html;
+}
+
+function renderCatalog() {
+  if (!els.catalogList || !els.catalogCount) return;
+
+  const filtered = catalogCore.filterCatalogCards(state.catalogCards, {
+    searchTerm: state.catalogSearch,
+    issuer: state.catalogIssuer,
+  });
+  els.catalogCount.textContent = `${filtered.length} ${filtered.length === 1 ? "card" : "cards"}`;
+
+  if (filtered.length === 0) {
+    els.catalogList.innerHTML = `<li class="muted catalog-empty">No cards match your filters yet.</li>`;
+    return;
+  }
+
+  const html = filtered
+    .map((card) => {
+      const tags = card.rewards.map((reward) => formatRewardTag(reward)).join("");
+      return `
+        <li class="catalog-item">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${escapeHtml(card.name)}</div>
+              <div class="issuer">${escapeHtml(card.issuer)}</div>
+            </div>
+            <span class="catalog-readonly">Read-only</span>
+          </div>
+          <div class="tags">${tags}</div>
+        </li>
+      `;
+    })
+    .join("");
+
+  els.catalogList.innerHTML = html;
 }
 
 function renderComparison() {
@@ -263,6 +347,11 @@ function renderComparison() {
       </li>`,
     )
     .join("");
+}
+
+function formatRewardTag(reward) {
+  const label = CATEGORIES.find((cat) => cat.id === reward.category)?.label || reward.category;
+  return `<span class="tag">${escapeHtml(label)}: ${comparisonCore.formatMultiplier(reward.multiplier)}</span>`;
 }
 
 function escapeHtml(value) {
