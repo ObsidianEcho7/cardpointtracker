@@ -143,6 +143,47 @@
       .filter(Boolean);
   }
 
+  function getCatalogCardId(walletCard) {
+    if (!walletCard || typeof walletCard !== "object") return "";
+
+    const directId = String(walletCard.catalogCardId || "").trim();
+    if (directId) return directId;
+
+    const originType = String(walletCard.originType || walletCard.origin?.type || "")
+      .trim()
+      .toLowerCase();
+
+    if (originType !== ORIGIN_CATALOG) return "";
+
+    const originCatalogId = String(walletCard.origin?.catalogCardId || "").trim();
+    if (originCatalogId) return originCatalogId;
+
+    const id = String(walletCard.id || "").trim();
+    return id.startsWith("catalog-") ? id.replace(/^catalog-/, "") : "";
+  }
+
+  function hasCatalogDuplicate(walletCards, catalogCardId) {
+    const target = String(catalogCardId || "").trim();
+    if (!target) return false;
+
+    return (Array.isArray(walletCards) ? walletCards : []).some(
+      (card) => getCatalogCardId(card) === target,
+    );
+  }
+
+  function addWalletCard(walletCards, walletCard) {
+    const normalizedList = normalizeWalletCards(walletCards);
+    const normalizedCard = normalizeWalletCard(walletCard);
+    if (!normalizedCard) return normalizedList;
+
+    const catalogCardId = getCatalogCardId(normalizedCard);
+    if (catalogCardId && hasCatalogDuplicate(normalizedList, catalogCardId)) {
+      return normalizedList;
+    }
+
+    return [...normalizedList, normalizedCard];
+  }
+
   return {
     ORIGIN_CATALOG,
     ORIGIN_CUSTOM,
@@ -150,6 +191,10 @@
     createCatalogWalletCard,
     normalizeWalletCard,
     normalizeWalletCards,
+    getCatalogCardId,
+    hasCatalogDuplicate,
+    catalogCardAlreadyInWallet: hasCatalogDuplicate,
+    addWalletCard,
     toCatalogWalletId,
   };
 });

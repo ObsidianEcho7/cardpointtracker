@@ -4,7 +4,10 @@ import assert from "node:assert/strict";
 import walletCore from "../wallet-core.js";
 
 const {
+  addWalletCard,
   createCatalogWalletCard,
+  getCatalogCardId,
+  hasCatalogDuplicate,
   normalizeRewardEntries,
   normalizeWalletCard,
   normalizeWalletCards,
@@ -106,6 +109,54 @@ test("normalizeWalletCards filters malformed entries and normalizes safe objects
   assert.equal(normalized.length, 1);
   assert.equal(normalized[0].originType, "custom");
   assert.deepEqual(normalized[0].rewards, [{ category: "travel", multiplier: 3 }]);
+});
+
+test("hasCatalogDuplicate matches by catalog identity even with persisted shape variants", () => {
+  const walletCards = normalizeWalletCards([
+    {
+      id: "catalog-chase-freedom-unlimited",
+      name: "Chase Freedom Unlimited",
+      issuer: "Chase",
+      rewards: [{ category: "travel", multiplier: 5 }],
+      originType: "catalog",
+      origin: {
+        type: "catalog",
+        catalogCardId: "chase-freedom-unlimited",
+      },
+    },
+  ]);
+
+  assert.equal(hasCatalogDuplicate(walletCards, "chase-freedom-unlimited"), true);
+  assert.equal(hasCatalogDuplicate(walletCards, "chase-sapphire-preferred"), false);
+  assert.equal(getCatalogCardId(walletCards[0]), "chase-freedom-unlimited");
+});
+
+test("addWalletCard blocks duplicate catalog cards for stale repeated interactions", () => {
+  const first = createCatalogWalletCard(
+    {
+      id: "citi-double-cash",
+      name: "Citi Double Cash",
+      issuer: "Citi",
+      rewards: [{ category: "other", multiplier: 2 }],
+    },
+    "2026-02-28T15:20:00.000Z",
+  );
+  const duplicate = createCatalogWalletCard(
+    {
+      id: "citi-double-cash",
+      name: "Citi Double Cash",
+      issuer: "Citi",
+      rewards: [{ category: "other", multiplier: 2 }],
+    },
+    "2026-02-28T15:21:00.000Z",
+  );
+
+  const once = addWalletCard([], first);
+  const twice = addWalletCard(once, duplicate);
+
+  assert.equal(once.length, 1);
+  assert.equal(twice.length, 1);
+  assert.equal(twice[0].catalogCardId, "citi-double-cash");
 });
 
 test("normalizeRewardEntries deduplicates categories and drops invalid values", () => {

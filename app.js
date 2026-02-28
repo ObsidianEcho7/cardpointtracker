@@ -255,10 +255,14 @@ async function onSubmitCard(event) {
 async function addCatalogCardToWallet(catalogCardId) {
   const catalogCard = state.catalogCards.find((entry) => entry.id === catalogCardId);
   if (!catalogCard) return;
+  if (walletCore.hasCatalogDuplicate(state.cards, catalogCardId)) return;
 
   const walletCard = walletCore.createCatalogWalletCard(catalogCard);
+  const nextCards = walletCore.addWalletCard(state.cards, walletCard);
+  if (nextCards.length === state.cards.length) return;
+
   await saveCard(walletCard);
-  state.cards.push(walletCard);
+  state.cards = nextCards;
   render();
 }
 
