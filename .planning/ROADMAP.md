@@ -95,7 +95,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Baseline Comparison Hardening | 2/2 | Complete   | 2026-02-28 |
+| 1. Baseline Comparison Hardening | 2/2 | Complete    | 2026-02-28 |
 | 2. Catalog Discovery Experience | 0/3 | Not started | - |
 | 3. Catalog-to-Wallet Integration | 0/3 | Not started | - |
 | 4. Card Type Rules & Editability | 0/3 | Not started | - |
