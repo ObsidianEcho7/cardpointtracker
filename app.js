@@ -17,6 +17,7 @@ const CATEGORIES = [
   { id: "sporting_goods", label: "Sporting Goods" },
   { id: "travel", label: "Travel" },
   { id: "travel_portal", label: "Travel (Portal)" },
+  { id: "travel_portal_hotels_cars", label: "Travel (Portal Hotels/Cars)" },
   { id: "transit", label: "Transit" },
   { id: "parking_tolls", label: "Parking & Tolls" },
   { id: "rideshare", label: "Rideshare" },

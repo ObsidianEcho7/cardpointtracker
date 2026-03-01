@@ -177,6 +177,15 @@ test("buildCatalogCards applies reward overrides for selected reference cards", 
     { category: "travel_portal", multiplier: 5 },
   ]);
 
+  const ventureX = byName.get("Capital One Venture X");
+  assert.ok(ventureX);
+  assert.deepEqual(ventureX.rewards, [
+    { category: "other", multiplier: 2 },
+    { category: "travel", multiplier: 2 },
+    { category: "travel_portal", multiplier: 5 },
+    { category: "travel_portal_hotels_cars", multiplier: 10 },
+  ]);
+
   const strataPremier = byName.get("Citi Strata Premier");
   assert.ok(strataPremier);
   assert.deepEqual(strataPremier.rewards, [
