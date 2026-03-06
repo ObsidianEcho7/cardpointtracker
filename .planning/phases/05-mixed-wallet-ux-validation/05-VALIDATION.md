@@ -1,10 +1,12 @@
 ---
 phase: 05
 slug: mixed-wallet-ux-validation
-status: ready
+status: complete
 nyquist_compliant: true
 wave_0_complete: true
+wave_3_complete: true
 created: 2026-03-06
+updated: 2026-03-06
 ---
 
 # Phase 05 - Validation Strategy
@@ -42,10 +44,15 @@ created: 2026-03-06
 | 05-01-02 | 01 | 1 | WAL-03 | unit/regression | `node --test tests/wallet-core.test.mjs tests/comparison-core.test.mjs` | ✅ | ⬜ pending |
 | 05-02-01 | 02 | 2 | WAL-03 | static/smoke | `node --check app.js && rg -n "catalog-toggle|aria-expanded|catalog-collapsed|Add Card|Popular Card Catalog" index.html app.js styles.css` | ✅ | ⬜ pending |
 | 05-02-02 | 02 | 2 | WAL-03 | static/smoke | `node --check app.js && rg -n "View all|Show fewer|ranking-more-count|ranking-expand" app.js styles.css index.html` | ✅ | ⬜ pending |
-| 05-03-01 | 03 | 3 | WAL-03 | mobile/manual + static | `node --check app.js && rg -n "catalogToggle|catalogPanel|catalogSearch|scrollIntoView|getBoundingClientRect|innerHeight" app.js` | ✅ | ⬜ pending |
-| 05-03-02 | 03 | 3 | WAL-03 | uat/traceability | `rg -n "Cold Start Smoke Test|Catalog Collapsed by Default|result:|root_cause|debug_session" .planning/phases/05-mixed-wallet-ux-validation/05-UAT.md && rg -n "05-03-01|05-03-02|nyquist_compliant|Approval" .planning/phases/05-mixed-wallet-ux-validation/05-VALIDATION.md` | ✅ | ⬜ pending |
+| 05-03-01 | 03 | 3 | WAL-03 | mobile/manual + static | `node --check app.js && rg -n "catalogToggle|catalogPanel|catalogSearch|scrollIntoView|getBoundingClientRect|innerHeight" app.js` | ✅ | ✅ green |
+| 05-03-02 | 03 | 3 | WAL-03 | uat/traceability | `rg -n "Cold Start Smoke Test|Catalog Collapsed by Default|result:|root_cause|debug_session" .planning/phases/05-mixed-wallet-ux-validation/05-UAT.md && rg -n "05-03-01|05-03-02|nyquist_compliant|Approval" .planning/phases/05-mixed-wallet-ux-validation/05-VALIDATION.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠ flaky*
+
+## 05-03 Execution Notes
+
+- `05-03-01`: `node --check app.js` passed, static grep confirmed the mobile reveal path, and Firefox automation at `390x844` showed the search/filter controls immediately after tapping `Show Catalog`.
+- `05-03-02`: UAT was re-scoped so Test 1 records cold-start evidence only, while the catalog visibility retest remains attached to Test 3 gap closure metadata.
 
 ---
 
@@ -75,4 +82,4 @@ Existing infrastructure covers all phase requirements.
 - [x] Feedback latency < 30s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** ready (includes 05-03 gap-closure task mapping)
+**Approval:** complete (05-03 gap closure verified and Nyquist mapping updated)
