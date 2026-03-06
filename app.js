@@ -255,6 +255,7 @@ function populateCategoryPickers() {
     (cat) => `<option value="${cat.id}">${cat.label}</option>`,
   ).join("");
   els.categoryPicker.innerHTML = pickerHtml;
+  els.categoryPicker.value = "other";
 }
 
 function addRewardRow(category = "other", multiplier = "1") {
@@ -278,7 +279,7 @@ function ensureRankingOverflow() {
   overflow.id = "rankingOverflow";
   overflow.className = "ranking-overflow";
   overflow.hidden = true;
-  els.ranking.before(overflow);
+  els.ranking.after(overflow);
   els.rankingOverflow = overflow;
 }
 
