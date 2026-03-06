@@ -61,6 +61,43 @@
     return text || fallback;
   }
 
+  function toIdSegment(value, fallback) {
+    const text = String(value || "").trim().toLowerCase();
+    const segment = text
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    return segment || fallback;
+  }
+
+  function buildRewardFingerprint(rewards) {
+    return [...rewards]
+      .sort((left, right) => {
+        if (left.multiplier !== right.multiplier) {
+          return right.multiplier - left.multiplier;
+        }
+
+        return left.category.localeCompare(right.category);
+      })
+      .map((reward) => `${toIdSegment(reward.category, "other")}-${toIdSegment(reward.multiplier, "0")}`)
+      .join("-");
+  }
+
+  function buildDeterministicCustomId(card, rewards) {
+    const stableTimestamp = normalizeTimestamp(card?.createdAt, "")
+      || normalizeTimestamp(card?.updatedAt, "");
+
+    return [
+      "custom",
+      toIdSegment(card?.name, "unnamed-card"),
+      toIdSegment(card?.issuer, "unknown"),
+      toIdSegment(card?.network, ""),
+      toIdSegment(stableTimestamp, ""),
+      buildRewardFingerprint(rewards),
+    ]
+      .filter(Boolean)
+      .join("-");
+  }
+
   function normalizeOriginType(value) {
     const type = String(value || "").trim().toLowerCase();
     if (type === ORIGIN_CATALOG) return ORIGIN_CATALOG;
@@ -168,7 +205,7 @@
     }
 
     return {
-      id: sanitizeText(card.id, `custom-${Date.now()}`),
+      id: sanitizeText(card.id, buildDeterministicCustomId(card, rewards)),
       name: sanitizeText(card.name, "Unnamed Card"),
       issuer: sanitizeText(card.issuer, "Unknown"),
       network: sanitizeText(card.network, ""),
