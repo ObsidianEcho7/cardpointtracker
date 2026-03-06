@@ -352,3 +352,81 @@ test("mixed direct matches and fallback cards still rank by multiplier before al
     ],
   );
 });
+
+test("reloaded mixed-wallet normalization preserves ranking parity across storage-shape variants", () => {
+  const mixedWalletInput = [
+    {
+      id: "catalog-chase-sapphire-preferred",
+      name: "Chase Sapphire Preferred",
+      issuer: "Chase",
+      rewards: {
+        dining: 3,
+        travel: 2,
+        other: 1,
+      },
+      origin: {
+        type: "catalog",
+        catalogCardId: "chase-sapphire-preferred",
+      },
+    },
+    {
+      name: "Everyday Local",
+      issuer: "Community CU",
+      rewards: {
+        travel: 3,
+        other: 1,
+      },
+      createdAt: "2026-03-05T13:00:00.000Z",
+      updatedAt: "2026-03-05T13:05:00.000Z",
+    },
+  ];
+
+  const originalNow = Date.now;
+
+  try {
+    Date.now = () => 1111;
+    const firstPass = computeComparisonResults(walletCore.normalizeWalletCards(mixedWalletInput), "travel");
+
+    Date.now = () => 2222;
+    const secondPass = computeComparisonResults(walletCore.normalizeWalletCards(mixedWalletInput), "travel");
+
+    assert.deepEqual(
+      firstPass.map((entry) => ({
+        id: entry.card.id,
+        name: entry.card.name,
+        multiplier: entry.multiplier,
+        source: entry.source,
+      })),
+      [
+        {
+          id: "custom-everyday-local-community-cu-2026-03-05t13-00-00-000z-travel-3-other-1",
+          name: "Everyday Local",
+          multiplier: 3,
+          source: "category match",
+        },
+        {
+          id: "catalog-chase-sapphire-preferred",
+          name: "Chase Sapphire Preferred",
+          multiplier: 2,
+          source: "category match",
+        },
+      ],
+    );
+    assert.deepEqual(
+      secondPass.map((entry) => ({
+        id: entry.card.id,
+        name: entry.card.name,
+        multiplier: entry.multiplier,
+        source: entry.source,
+      })),
+      firstPass.map((entry) => ({
+        id: entry.card.id,
+        name: entry.card.name,
+        multiplier: entry.multiplier,
+        source: entry.source,
+      })),
+    );
+  } finally {
+    Date.now = originalNow;
+  }
+});

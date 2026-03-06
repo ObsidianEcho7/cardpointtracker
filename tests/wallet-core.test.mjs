@@ -336,3 +336,74 @@ test("normalizeRewardEntries deduplicates categories and drops invalid values", 
     { category: "travel", multiplier: 3 },
   ]);
 });
+
+test("normalizeWalletCard derives deterministic fallback ids for legacy custom cards without ids", () => {
+  const legacyCustom = {
+    name: "Legacy Everyday",
+    issuer: "Neighborhood CU",
+    rewards: {
+      groceries: 3,
+      other: 1,
+    },
+    createdAt: "2026-03-05T12:00:00.000Z",
+    updatedAt: "2026-03-05T12:30:00.000Z",
+  };
+  const originalNow = Date.now;
+
+  try {
+    Date.now = () => 1000;
+    const first = normalizeWalletCard(legacyCustom);
+
+    Date.now = () => 999999;
+    const second = normalizeWalletCard(legacyCustom);
+
+    assert.equal(first?.originType, "custom");
+    assert.equal(second?.originType, "custom");
+    assert.equal(first?.id, second?.id);
+    assert.match(first?.id || "", /^custom-/);
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
+test("empty and single-card persisted wallet shapes stay comparison-safe after normalization", () => {
+  const empty = normalizeWalletCards([]);
+  const singleCatalog = normalizeWalletCards([
+    {
+      id: "catalog-bilt-mastercard",
+      name: "Bilt Mastercard",
+      issuer: "Wells Fargo",
+      rewards: {
+        dining: 3,
+        travel: 2,
+        other: 1,
+      },
+      origin: {
+        type: "catalog",
+        catalogCardId: "bilt-mastercard",
+      },
+    },
+  ]);
+  const singleCustom = normalizeWalletCards([
+    {
+      name: "Solo Custom",
+      issuer: "Local CU",
+      rewards: {
+        groceries: 4,
+        other: 1,
+      },
+      createdAt: "2026-03-05T12:45:00.000Z",
+    },
+  ]);
+
+  assert.deepEqual(empty, []);
+  assert.equal(singleCatalog.length, 1);
+  assert.equal(singleCatalog[0].originType, "catalog");
+  assert.equal(singleCatalog[0].catalogCardId, "bilt-mastercard");
+  assert.equal(singleCustom.length, 1);
+  assert.equal(singleCustom[0].originType, "custom");
+  assert.deepEqual(singleCustom[0].rewards, [
+    { category: "groceries", multiplier: 4 },
+    { category: "other", multiplier: 1 },
+  ]);
+});
