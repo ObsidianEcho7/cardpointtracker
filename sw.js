@@ -1,7 +1,8 @@
-const CACHE_NAME = "cardtracker-v25";
+const CACHE_NAME = "cardtracker-v26";
+const INDEX_FALLBACK = "./index.html";
 const APP_SHELL = [
   "./",
-  "./index.html",
+  INDEX_FALLBACK,
   "./styles.css",
   "./app.js",
   "./catalog-core.js",
@@ -10,12 +11,28 @@ const APP_SHELL = [
   "./manifest.webmanifest",
   "./assets/icon.svg",
 ];
+const NETWORK_FIRST_DESTINATIONS = new Set(["script", "style", "worker"]);
+
+function cacheResponse(request, response) {
+  if (!response || response.status !== 200 || response.type !== "basic") {
+    return;
+  }
+
+  const copy = response.clone();
+  caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
   );
   self.skipWaiting();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {
@@ -34,13 +51,26 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          if (response && response.status === 200 && response.type === "basic") {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put("index.html", copy));
-          }
+          cacheResponse(INDEX_FALLBACK, response);
           return response;
         })
-        .catch(() => caches.match("index.html")),
+        .catch(() => caches.match(INDEX_FALLBACK)),
+    );
+    return;
+  }
+
+  const requestUrl = new URL(event.request.url);
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+  const isNetworkFirstTarget = isSameOrigin && NETWORK_FIRST_DESTINATIONS.has(event.request.destination);
+
+  if (isNetworkFirstTarget) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          cacheResponse(event.request, response);
+          return response;
+        })
+        .catch(() => caches.match(event.request)),
     );
     return;
   }
@@ -49,11 +79,7 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
-        }
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        cacheResponse(event.request, response);
         return response;
       });
     }),

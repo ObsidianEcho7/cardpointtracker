@@ -817,7 +817,30 @@ async function deleteCard(id) {
 async function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
   try {
-    await navigator.serviceWorker.register("./sw.js");
+    let isRefreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (isRefreshing) return;
+      isRefreshing = true;
+      window.location.reload();
+    });
+
+    const registration = await navigator.serviceWorker.register("./sw.js");
+    await registration.update();
+
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+
+    registration.addEventListener("updatefound", () => {
+      const candidate = registration.installing;
+      if (!candidate) return;
+
+      candidate.addEventListener("statechange", () => {
+        if (candidate.state !== "installed") return;
+        if (!navigator.serviceWorker.controller) return;
+        candidate.postMessage({ type: "SKIP_WAITING" });
+      });
+    });
   } catch (error) {
     console.error("Service worker registration failed", error);
   }
