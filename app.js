@@ -29,6 +29,7 @@ const state = {
   catalogIssuer: "all",
   catalogFeedbackById: {},
   isCatalogCollapsed: true,
+  shouldRevealCatalogOnRender: false,
   isRankingExpanded: false,
 };
 
@@ -183,7 +184,9 @@ function wireEvents() {
     renderCatalog();
   });
   els.catalogToggle?.addEventListener("click", () => {
+    const isOpeningCatalog = state.isCatalogCollapsed;
     state.isCatalogCollapsed = !state.isCatalogCollapsed;
+    state.shouldRevealCatalogOnRender = isOpeningCatalog;
     renderCatalog();
   });
   els.catalogList?.addEventListener("click", async (event) => {
@@ -487,6 +490,11 @@ function renderCatalog() {
     return;
   }
 
+  if (state.shouldRevealCatalogOnRender) {
+    state.shouldRevealCatalogOnRender = false;
+    revealCatalogControlsIfNeeded();
+  }
+
   if (filtered.length === 0) {
     const hasSearch = Boolean(String(state.catalogSearch || "").trim());
     const hasIssuerFilter = String(state.catalogIssuer || "all").toLowerCase() !== "all";
@@ -537,6 +545,35 @@ function renderCatalog() {
     .join("");
 
   els.catalogList.innerHTML = html;
+}
+
+function revealCatalogControlsIfNeeded() {
+  if (!els.catalogPanel) return;
+  if (!shouldRevealCatalogControls()) return;
+
+  const revealTarget = els.catalogSearch || els.catalogPanel;
+  if (!revealTarget) return;
+
+  requestAnimationFrame(() => {
+    const targetRect = revealTarget.getBoundingClientRect();
+    const panelRect = els.catalogPanel?.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const targetFullyVisible = targetRect.top >= 0 && targetRect.bottom <= viewportHeight;
+    const panelTopVisible = panelRect ? panelRect.top >= 0 && panelRect.top < viewportHeight : false;
+
+    if (targetFullyVisible && panelTopVisible) {
+      return;
+    }
+
+    revealTarget.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+}
+
+function shouldRevealCatalogControls() {
+  return window.innerHeight <= 900;
 }
 
 function renderComparison() {
