@@ -85,10 +85,10 @@ Plans:
   1. Ranking logic treats catalog and custom cards consistently for the same category.
   2. Main screen experience remains fast and understandable with mixed wallet composition.
   3. Key edge cases (empty wallet, single card, catalog-only, custom-only, mixed) behave correctly.
-**Plans:** 2 plans
+**Plans:** 1/2 plans complete
 
 Plans:
-- [ ] 05-01: Validate mixed-wallet ranking and fallback behavior across edge cases
+- [x] 05-01: Validate mixed-wallet ranking and fallback behavior across edge cases
 - [ ] 05-02: Ship UX polish, copy clarity, and final acceptance checks for general users
 
 ## Progress
@@ -99,4 +99,4 @@ Plans:
 | 2. Catalog Discovery Experience | 3/3 | Complete    | 2026-02-28 |
 | 3. Catalog-to-Wallet Integration | 3/3 | Complete    | 2026-02-28 |
 | 4. Card Type Rules & Editability | 3/3 | Complete    | 2026-02-28 |
-| 5. Mixed Wallet UX Validation | 0/2 | Not started | - |
+| 5. Mixed Wallet UX Validation | 1/2 | In Progress | - |

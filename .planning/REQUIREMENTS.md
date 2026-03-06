@@ -9,7 +9,7 @@
 
 - [x] **WAL-01**: User can select a purchase category and see all wallet cards ranked by multiplier (highest first)
 - [x] **WAL-02**: User can clearly identify the top-ranked card for the selected category
-- [ ] **WAL-03**: Ranking logic applies to both custom and catalog cards using the same category/fallback rules
+- [x] **WAL-03**: Ranking logic applies to both custom and catalog cards using the same category/fallback rules
 
 ### Custom Cards
 
@@ -55,7 +55,7 @@
 |-------------|-------|--------|
 | WAL-01 | Phase 1 | Complete |
 | WAL-02 | Phase 1 | Complete |
-| WAL-03 | Phase 5 | Pending |
+| WAL-03 | Phase 5 | Complete |
 | CUS-01 | Phase 4 | Complete |
 | CUS-02 | Phase 4 | Complete |
 | CUS-03 | Phase 4 | Complete |
@@ -74,4 +74,4 @@
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after roadmap creation*
+*Last updated: 2026-03-06 after 05-01 execution*
