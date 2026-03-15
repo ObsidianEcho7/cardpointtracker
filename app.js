@@ -29,26 +29,32 @@ const state = {
   catalogSearch: "",
   catalogIssuer: "all",
   catalogFeedbackById: {},
+  catalogStatusMessage: "",
   isCatalogCollapsed: true,
   shouldRevealCatalogOnRender: false,
   isRankingExpanded: false,
+  shouldRevealRankingOnRender: false,
 };
 
 const els = {
   categoryPicker: document.getElementById("categoryPicker"),
   result: document.getElementById("result"),
+  compareStatus: document.getElementById("compareStatus"),
   ranking: document.getElementById("ranking"),
   rankingOverflow: document.getElementById("rankingOverflow"),
   catalogSearch: document.getElementById("catalogSearch"),
   catalogList: document.getElementById("catalogList"),
   catalogCount: document.getElementById("catalogCount"),
   catalogIssuer: document.getElementById("catalogIssuer"),
+  catalogStatus: document.getElementById("catalogStatus"),
   catalogToggle: document.getElementById("catalogToggle"),
   catalogPanel: document.getElementById("catalogPanel"),
   cardList: document.getElementById("cardList"),
   cardCount: document.getElementById("cardCount"),
   cardForm: document.getElementById("cardForm"),
   formTitle: document.getElementById("formTitle"),
+  formStatus: document.getElementById("formStatus"),
+  formIntro: document.querySelector("[data-form-intro]"),
   saveCardBtn: document.getElementById("saveCardBtn"),
   cancelEdit: document.getElementById("cancelEdit"),
   cardName: document.getElementById("cardName"),
@@ -174,6 +180,7 @@ function wireEvents() {
     if (!toggle) return;
 
     state.isRankingExpanded = !state.isRankingExpanded;
+    state.shouldRevealRankingOnRender = true;
     renderComparison();
   });
   els.catalogSearch?.addEventListener("input", (event) => {
@@ -188,6 +195,9 @@ function wireEvents() {
     const isOpeningCatalog = state.isCatalogCollapsed;
     state.isCatalogCollapsed = !state.isCatalogCollapsed;
     state.shouldRevealCatalogOnRender = isOpeningCatalog;
+    state.catalogStatusMessage = isOpeningCatalog
+      ? "Catalog opened below. Search or filter before adding a card."
+      : "";
     renderCatalog();
   });
   els.catalogList?.addEventListener("click", async (event) => {
@@ -346,11 +356,13 @@ async function addCatalogCardToWallet(catalogCardId) {
   const catalogCard = state.catalogCards.find((entry) => entry.id === catalogCardId);
   if (!catalogCard) return;
   if (!Array.isArray(catalogCard.rewards) || catalogCard.rewards.length === 0) {
+    state.catalogStatusMessage = "This catalog card does not have reward details yet.";
     setCatalogFeedback(catalogCardId, "info", "Rewards data unavailable for this card yet.");
     renderCatalog();
     return;
   }
   if (walletCore.hasCatalogDuplicate(state.cards, catalogCardId)) {
+    state.catalogStatusMessage = `${catalogCard.name} is already in your wallet.`;
     setCatalogFeedback(catalogCardId, "info", "Already in wallet.");
     renderCatalog();
     return;
@@ -359,6 +371,7 @@ async function addCatalogCardToWallet(catalogCardId) {
   const walletCard = walletCore.createCatalogWalletCard(catalogCard);
   const nextCards = walletCore.addWalletCard(state.cards, walletCard);
   if (nextCards.length === state.cards.length) {
+    state.catalogStatusMessage = `${catalogCard.name} is already in your wallet.`;
     setCatalogFeedback(catalogCardId, "info", "Already in wallet.");
     renderCatalog();
     return;
@@ -366,6 +379,7 @@ async function addCatalogCardToWallet(catalogCardId) {
 
   await saveCard(walletCard);
   state.cards = nextCards;
+  state.catalogStatusMessage = `${catalogCard.name} added to your wallet.`;
   setCatalogFeedback(catalogCardId, "success", "Added to wallet.");
   renderWalletMutationViews();
 }
@@ -486,6 +500,10 @@ function renderCatalog() {
   els.catalogToggle.setAttribute("aria-expanded", String(!state.isCatalogCollapsed));
   els.catalogPanel.hidden = state.isCatalogCollapsed;
   els.catalogPanel.classList.toggle("catalog-collapsed", state.isCatalogCollapsed);
+  syncMobileStatus(els.catalogStatus, state.catalogStatusMessage, {
+    tone: "success",
+    shouldShow: !state.isCatalogCollapsed,
+  });
 
   if (state.isCatalogCollapsed) {
     return;
@@ -502,6 +520,13 @@ function renderCatalog() {
     const emptyMessage = hasSearch || hasIssuerFilter
       ? "No catalog cards match this search/filter. Try clearing search or switching to All issuers."
       : "Catalog is empty. Check back after catalog data is loaded.";
+    state.catalogStatusMessage = hasSearch || hasIssuerFilter
+      ? "No cards match the current mobile search and issuer filters."
+      : state.catalogStatusMessage;
+    syncMobileStatus(els.catalogStatus, state.catalogStatusMessage, {
+      tone: "success",
+      shouldShow: !state.isCatalogCollapsed,
+    });
     els.catalogList.innerHTML = `<li class="muted catalog-empty">${escapeHtml(emptyMessage)}</li>`;
     return;
   }
@@ -586,6 +611,8 @@ function renderComparison() {
 
   if (comparisonCards.length === 0) {
     state.isRankingExpanded = false;
+    state.shouldRevealRankingOnRender = false;
+    syncMobileStatus(els.compareStatus, "");
     if (rankingOverflow) {
       rankingOverflow.hidden = true;
       rankingOverflow.innerHTML = "";
@@ -599,6 +626,8 @@ function renderComparison() {
 
   if (scored.length === 0) {
     state.isRankingExpanded = false;
+    state.shouldRevealRankingOnRender = false;
+    syncMobileStatus(els.compareStatus, "");
     if (rankingOverflow) {
       rankingOverflow.hidden = true;
       rankingOverflow.innerHTML = "";
@@ -642,6 +671,18 @@ function renderComparison() {
       rankingOverflow.hidden = true;
       rankingOverflow.innerHTML = "";
     }
+  }
+
+  const compareStatusMessage = hasOverflow
+    ? (state.isRankingExpanded
+      ? `Showing all ${scored.length} ranked cards for this category.`
+      : `Showing the top ${DEFAULT_VISIBLE_RANKING_COUNT} of ${scored.length} ranked cards. Use View all to reveal the rest.`)
+    : `Showing all ${scored.length} ranked ${scored.length === 1 ? "card" : "cards"} for this category.`;
+  syncMobileStatus(els.compareStatus, compareStatusMessage);
+
+  if (state.shouldRevealRankingOnRender) {
+    state.shouldRevealRankingOnRender = false;
+    revealRankingResultsIfNeeded();
   }
 
   els.ranking.innerHTML = visibleScored
@@ -689,6 +730,29 @@ function resetForm() {
   els.rewardRows.innerHTML = "";
   addRewardRow();
   syncCardFormState();
+}
+
+function syncMobileStatus(element, message, options = {}) {
+  if (!element) return;
+
+  const { tone = "", shouldShow = true } = options;
+  element.hidden = !shouldShow || !message || !isMobileViewport();
+  element.textContent = message || "";
+  element.classList.toggle("is-success", tone === "success" && !element.hidden);
+  element.classList.toggle("is-editing", tone === "editing" && !element.hidden);
+}
+
+function revealRankingResultsIfNeeded() {
+  if (!isMobileViewport()) return;
+  const revealTarget = els.compareStatus?.hidden ? els.result : els.compareStatus;
+  revealTarget?.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
+}
+
+function isMobileViewport() {
+  return Boolean(globalThis.matchMedia?.(MOBILE_FORM_MEDIA_QUERY).matches);
 }
 
 function startEdit(cardId) {

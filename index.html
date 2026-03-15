@@ -28,6 +28,7 @@
           <select id="categoryPicker"></select>
         </div>
         <div id="result" class="result muted result-empty" aria-live="polite">Add at least one card to compare. Use the Add Card form below to get started.</div>
+        <p id="compareStatus" class="mobile-status" hidden aria-live="polite"></p>
         <ul id="ranking" class="ranking"></ul>
       </section>
 
@@ -44,9 +45,10 @@
         <div class="panel-header panel-header-stackable">
           <div class="panel-heading">
             <h2 id="formTitle">Add Card</h2>
-            <p class="panel-intro">Build or update a custom card with clear reward categories.</p>
+            <p class="panel-intro" data-form-intro>Build or update a custom card with clear reward categories.</p>
           </div>
         </div>
+        <p id="formStatus" class="mobile-status mobile-status-form" hidden aria-live="polite"></p>
         <form id="cardForm" class="card-form">
           <div class="fields">
             <label>
@@ -91,6 +93,7 @@
           </button>
         </div>
         <div id="catalogPanel" class="catalog-panel catalog-collapsed" hidden>
+          <p id="catalogStatus" class="mobile-status" hidden aria-live="polite"></p>
           <div class="catalog-controls">
             <label for="catalogSearch">Search by card name</label>
             <input

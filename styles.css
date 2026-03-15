@@ -204,6 +204,34 @@ button.ghost {
   color: var(--muted);
 }
 
+.mobile-status {
+  margin: 0.65rem 0 0;
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d8e7ed;
+  background: rgba(244, 251, 255, 0.92);
+  color: #24424a;
+  font-size: 0.88rem;
+}
+
+.mobile-status strong {
+  color: var(--accent);
+}
+
+.mobile-status-form {
+  margin-top: 0.8rem;
+}
+
+.mobile-status.is-success {
+  border-color: #bfdccf;
+  background: rgba(238, 248, 244, 0.96);
+}
+
+.mobile-status.is-editing {
+  border-color: #bfdccf;
+  background: rgba(238, 248, 244, 0.96);
+}
+
 .ranking,
 .card-list,
 .catalog-list {
