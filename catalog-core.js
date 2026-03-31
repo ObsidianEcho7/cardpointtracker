@@ -93,9 +93,8 @@
       issuer: "Discover",
       network: "Discover",
       rewards: {
-        groceries: 5,
-        wholesale_clubs: 5,
-        streaming: 5,
+        dining: 5,
+        home_improvement: 5,
         other: 1,
       },
     },
@@ -125,7 +124,8 @@
       issuer: "Chase",
       network: "Mastercard",
       rewards: {
-        dining: 5,
+        amazon: 5,
+        dining: 3,
         drugstore: 3,
         other: 1,
       },

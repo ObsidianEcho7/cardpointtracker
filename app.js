@@ -1,8 +1,10 @@
 const CATEGORIES = [
+  { id: "amazon", label: "Amazon" },
   { id: "dining", label: "Dining / Restaurants" },
   { id: "entertainment", label: "Entertainment" },
   { id: "groceries", label: "Groceries" },
   { id: "gas", label: "Gas" },
+  { id: "home_improvement", label: "Home Improvement" },
   { id: "ev_charging", label: "EV Charging" },
   { id: "utilities", label: "Utilities" },
   { id: "phone_plans", label: "Phone Plans / Telecom" },
