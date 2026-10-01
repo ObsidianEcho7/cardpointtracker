@@ -1,4 +1,4 @@
-const CACHE_NAME = "cardtracker-v26";
+const CACHE_NAME = "cardtracker-v27";
 const INDEX_FALLBACK = "./index.html";
 const APP_SHELL = [
   "./",

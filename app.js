@@ -1,6 +1,7 @@
 const CATEGORIES = [
   { id: "amazon", label: "Amazon" },
   { id: "dining", label: "Dining / Restaurants" },
+  { id: "american_red_cross", label: "American Red Cross Donations" },
   { id: "entertainment", label: "Entertainment" },
   { id: "groceries", label: "Groceries" },
   { id: "gas", label: "Gas" },
